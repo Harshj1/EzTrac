@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block body %}
+	<br/>
+	{% if not Login %}
+		<div align="center">
+			<br/>
+			<h2>Welcome to EzTrac</h2>
+			<br>
+			<h2>EzTrac can be used to keep track of price changes on <img
+					src="http://media.corporate-ir.net/media_files/IROL/17/176060/img/logos/amazon_logo_RGB.jpg"
+					width="120px">
+			</h2>
+			<br>
+			<div align="center"><h2>Please <a href="login">login</a> to use app</h2></div>
+		</div>
+	{% endif %}
+
+	{% if Login == "True" %}
+		<div align="center">
+			<h3>Welcome to EzTrac, {{ username }}</h3>
+
+			<h3>EzTrac can be used to keep track of price changes on <img
+					src="http://media.corporate-ir.net/media_files/IROL/17/176060/img/logos/amazon_logo_RGB.jpg"
+					width="120px">
+			</h3>
+			<br>
+		</div>
+
+		<h4 style="text-align: center; color: #216e91">Enter page link for product you want to track below</h4>
+
+
+		<div class="col-xs-2"></div>
+		<div class="col-xs-8">
+			<form method="POST" action="/" class="form-group">
+				{% csrf_token %}
+
+				{% for field in form %}
+					<div class="input-group col-xs-12">
+						{{ field }}
+						<span class="input-group-btn">
+							<button class="btn btn-primary" name="url_submit" type="submit">Add to Watch List</button>
+						</span>
+					</div>
+				{% endfor %}
+
+				{% for field in form.fields %}
+					{% if field.errors %}
+						<div class="alert alert-danger">
+							{{ field.errors }}
+						</div>
+					{% endif %}
+				{% endfor %}
+			</form>
+			<br>
+			<br>
+
+			<div class="dataToSort">
+				{% for product in data %}
+					<div class="row">
+						<div class="col-md-2 itemImageBig">
+
+							<!-- Modal content-->
+							<div id="myModal" class="modal fade" role="dialog">
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal">&times;</button>
+											<h4 class="modal-title">Set Alert For</h4>
+										</div>
+
+										<form class="form-group" action="" method="POST">
+											{% csrf_token %}
+											<div class="modal-body">
+												<div id="alertInner" style="padding-left:15px;">
+													<h3>Price right now is </h3>
+													<div class="radio">
+														&nbsp;
+														Send mail to
+
+														<div class="input-group input-group-sm">
+															<span class="input-group-addon">
+																<i class="fa fa-envelope"></i>
+															</span>
+															<input type="email" name="alert_pref_email" required
+															       class="form-control">
+														</div>&nbsp;When price drops below
+
+														<div class="input-group input-group-sm">
+															<span class="input-group-addon">
+																<i class="fa fa-inr"></i>
+															</span>
+															<input type="text" name="alert_price" required
+															       class="form-control">
+														</div>
+														<input name="hidden-title" class="form-control" style="" type="hidden" value="{{ product.title }}">
+													</div>
+													<div align="right">
+														<button data-dismiss="modal" class="btn btn-danger">Close
+														</button>
+														<button class="btn btn-success" onclick="call_ajax()"
+														        name="save">Save
+														</button>
+													</div>
+												</div>
+											</div>
+										</form>
+									</div>
+								</div>
+							</div>
+
+							<a href="" style="text-decoration:none;">
+								<img src="{{ product.img_url }}" width="100px">
+							</a>
+						</div>
+						<div class="col-md-5">
+							<b>
+								<a href="" style="text-decoration:none;"></a>
+							</b>
+							<h4 name = "title">{{ product.title }}</h4>
+							<div>
+								<div class="text-muted very-small ng-binding">Updated {{ product.updated_at }}</div>
+								<br>
+								<div>
+									<span data-toggle="modal"
+									      data-target="#myModal"> <a>Price Drop Notification</a> | </span>
+
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-3">
+							<i class="fa fa-inr"></i>{{ product.curr_price }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+							{% if "loss" in product %}
+								{% if product.loss > 0 %}
+									<i class="fa fa-inr"></i>
+									<span><b>{{ product.loss }}</b></span>
+									<span class="ng-hide">
+										<i class="fa fa-chevron-up" style="color:red"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									</span>
+								{% else %}
+									<i class="fa fa-inr"></i>
+									<span><b>{{ product.loss }}</b></span>
+									<span ng-show="(itemJson.pd.diff) < 0" class="ng-hide">
+										<i class="fa fa-chevron-left"></i><i class="fa fa-chevron-right"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									</span>
+								{% endif %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+							{% else %}
+								{% if product.profit > 0 %}
+									<i class="fa fa-inr"></i>
+									<span><b>{{ product.profit }}</b></span>
+									<span class="ng-hide">
+										<i class="fa fa-chevron-down" style="color:green"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									</span>
+								{% else %}
+									<i class="fa fa-inr"></i>
+									<span><b>{{ product.profit }}</b></span>
+									<span ng-show="(itemJson.pd.diff) < 0" class="ng-hide">
+										<i class="fa fa-chevron-left"></i><i class="fa fa-chevron-right"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									</span>
+								{% endif %}
+							{% endif %}
+						</div>
+						<div class="col-md-2 text-center">
+							<a href={{ product.product_url }} class="btn btn-success">Buy Now</a>
+						</div>
+					</div>
+					<br>
+					<br>
+				{% endfor %}
+
+			</div>
+			<hr>
+		</div>
+	{% endif %}
+
+	<script>
+
+		var title = document.getElementById("")
+		var hidden = document.getElementById("hidden-title");
+
+{#		button.setAttribute('value', {{  }})#}
+
+        function call_ajax() {
+            alert("UOOO");
+
+            $.ajax({
+                type: "POST",
+                url: "/",
+	            data: {
+		            "hi": "pop",
+{#                    json_data: JSON.stringify({'product-title': title}),#}
+{#                    'some-form-field': $("myform input:first").val(), // from form#}
+{#                    'background-color': $("body").css("background-color,#}
+                    // all of this data is submitted via POST to your view.
+                    // in django, request.POST['background-color']
+	                 CSRF: getCSRFTokenValue()
+                },
+                success: function (data) {
+                    alert(data);
+                    {#			         $("body").append(data);#}
+                }
+            });
+        }
+	</script>
+
+{% endblock %}
